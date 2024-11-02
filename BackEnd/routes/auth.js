@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
+const Listing = require('../models/Listings');
 
 const router = express.Router();
 
@@ -84,6 +85,111 @@ router.post('/api/auth/logout', auth, (req, res) => {
   res.json({ message: 'User logged out successfully' });
 });
 
+
+router.post('/api/listings', auth, async (req, res) => {
+  const { name, type, location, description, pricePerNight, amenities } = req.body;
+
+  try {
+    const user = await User.findById(req.user.id);
+    if (user.role !== 'partner') {
+      return res.status(403).json({ message: 'Access denied. Only partners can create listings.' });
+    }
+
+    const newListing = new Listing({
+      name,
+      type,
+      location,
+      description,
+      images,
+      pricePerNight,
+      amenities,
+      partnerId: req.user.id,
+    });
+
+    await newListing.save();
+    res.json(newListing);
+  } catch (err) {
+    res.status(500).send('Server error');
+  }
+});
+
+router.put('/api/listings/:id', auth, async (req, res) => {
+  const { name, type, location, description, images, pricePerNight, amenities } = req.body;
+
+  try {
+    const listing = await Listing.findById(req.params.id);
+
+    if (!listing) return res.status(404).json({ message: 'Listing not found' });
+    if (listing.partnerId.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Access denied. You can only update your own listings.' });
+    }
+
+    listing.name = name;
+    listing.type = type;
+    listing.location = location;
+    listing.description = description;
+    listing.images = images;
+    listing.pricePerNight = pricePerNight;
+    listing.amenities = amenities;
+
+    await listing.save();
+    res.json(listing);
+  } catch (err) {
+    res.status(500).send('Server error');
+  }
+});
+
+
+router.delete('/api/listings/:id', auth, async (req, res) => {
+  try {
+    const listing = await Listing.findById(req.params.id);
+
+    if (!listing) return res.status(404).json({ message: 'Listing not found' });
+    if (listing.partnerId.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Access denied. You can only delete your own listings.' });
+    }
+
+    await listing.remove();
+    res.json({ message: 'Listing removed' });
+  } catch (err) {
+    res.status(500).send('Server error');
+  }
+});
+
+
+router.get('/api/listings', async (req, res) => {
+  try {
+    const listings = await Listing.find();
+    res.json(listings);
+  } catch (err) {
+    res.status(500).send('Server error');
+  }
+});
+
+
+const Booking = require('../models/Booking');
+
+router.post('/api/bookings', auth, async (req, res) => {
+  const { listingId, checkInDate, checkOutDate } = req.body;
+
+  try {
+    const listing = await Listing.findById(listingId);
+    if (!listing) return res.status(404).json({ message: 'Listing not found' });
+
+    const booking = new Booking({
+      listingId,
+      userId: req.user.id,
+      checkInDate,
+      checkOutDate,
+      totalPrice: listing.pricePerNight * ((new Date(checkOutDate) - new Date(checkInDate)) / (1000 * 60 * 60 * 24)),
+    });
+
+    await booking.save();
+    res.json(booking);
+  } catch (err) {
+    res.status(500).send('Server error');
+  }
+});
 
 
 
