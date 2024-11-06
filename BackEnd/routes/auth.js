@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
+const Listing = require('../models/Listings');
 
 const router = express.Router();
 
@@ -82,6 +83,93 @@ router.get('/api/auth/user', auth, async (req, res) => {
 router.post('/api/auth/logout', auth, (req, res) => {
   // You can perform additional tasks here, like logging out the user from the server-side perspective
   res.json({ message: 'User logged out successfully' });
+});
+
+
+// POST /api/partners/addListing - Add a new listing
+router.post('/api/partners/addListing', async (req, res) => {
+  const { name, location, description, type, owner } = req.body;
+
+  try {
+    // Create a new listing instance
+    const newListing = new Listing({
+      name,
+      location,
+      description,
+      type,
+      owner,
+    });
+
+    // Save the listing to the database
+    await newListing.save();
+
+    // Send a success response
+    res.status(200).json({ message: 'Listing added successfully!' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// GET /api/partners/myListings - Get all listings for a specific partner
+router.get('/api/partners/myListings', async (req, res) => {
+  const { owner } = req.query;
+
+  try {
+    // If an owner is specified, filter by owner, otherwise get all listings
+    const filter = owner ? { owner } : {}; 
+    const listings = await Listing.find(filter);
+
+    res.status(200).json(listings);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ message: 'Failed to fetch listings' });
+  }
+});
+
+
+
+// DELETE /api/partners/deleteListing/:id - Delete a listing by ID
+router.delete('/api/partners/deleteListing/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Find the listing by ID and delete it
+    const deletedListing = await Listing.findByIdAndDelete(id);
+    if (!deletedListing) {
+      return res.status(404).json({ message: 'Listing not found' });
+    }
+
+    res.status(200).json({ message: 'Listing deleted successfully!' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ message: 'Failed to delete listing' });
+  }
+});
+
+
+// PUT /api/partners/editListing/:id - Edit a listing by ID
+router.put('/api/partners/editListing/:id', async (req, res) => {
+  const { id } = req.params;
+  const { name, location, description, type } = req.body;
+
+  try {
+    // Find listing by ID and update it
+    const updatedListing = await Listing.findByIdAndUpdate(
+      id,
+      { name, location, description, type },
+      { new: true }
+    );
+
+    if (!updatedListing) {
+      return res.status(404).json({ message: 'Listing not found' });
+    }
+
+    res.status(200).json({ message: 'Listing updated successfully!', listing: updatedListing });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ message: 'Failed to update listing' });
+  }
 });
 
 

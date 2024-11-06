@@ -29,6 +29,7 @@ class _HomePagePartnerState extends State<HomePagePartner> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.remove('token');
     await prefs.remove('username');
+    await prefs.remove('email');
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (context) => LoginPage()),
     );

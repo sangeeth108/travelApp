@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login_page.dart';
+import 'listings.dart'; // Import the Listings page
 
 class HomePageUser extends StatefulWidget {
   @override
@@ -27,6 +28,7 @@ class _HomePageUserState extends State<HomePageUser> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.remove('token');
     await prefs.remove('username');
+    await prefs.remove('email');
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (context) => LoginPage()),
     );
@@ -53,6 +55,15 @@ class _HomePageUserState extends State<HomePageUser> {
               style: TextStyle(fontSize: 24),
             ),
             SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ListingsPage()),
+                );
+              },
+              child: Text('Booking'),
+            ),
           ],
         ),
       ),
