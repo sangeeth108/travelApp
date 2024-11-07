@@ -6,8 +6,14 @@ const ListingSchema = new mongoose.Schema({
     required: true,
   },
   location: {
-    type: String,
-    required: true,
+    latitude: {
+      type: Number,
+      required: true,
+    },
+    longitude: {
+      type: Number,
+      required: true,
+    },
   },
   description: {
     type: String,
@@ -25,7 +31,6 @@ const ListingSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
-
 });
 
 module.exports = mongoose.model('Listing', ListingSchema);

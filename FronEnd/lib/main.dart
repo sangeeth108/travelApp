@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login_page.dart';
-import 'home_page_user.dart';  // Import HomePageUser
-import 'home_page_partner.dart'; // Import HomePagePartner
+import 'home_page_user.dart';
+import 'home_page_partner.dart';
 
 void main() {
   runApp(MyApp());
@@ -20,10 +20,11 @@ class MyApp extends StatelessWidget {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           } else {
-            if (snapshot.data != null) {
+            if (snapshot.hasData && snapshot.data!['token'] != null && snapshot.data!['role'] != null) {
               String role = snapshot.data!['role'];
               return role == 'partner' ? HomePagePartner() : HomePageUser();
             } else {
+              // Navigate to LoginPage if token or role is null
               return LoginPage();
             }
           }
@@ -33,15 +34,14 @@ class MyApp extends StatelessWidget {
   }
 
   static Future<Map<String, dynamic>> _checkLoginAndRole() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  String? token = prefs.getString('token');
-  String? role = prefs.getString('role');
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+    String? role = prefs.getString('role');
 
-  // Return a map indicating whether the user is logged in and their role
-  return {
-    'token': token,
-    'role': role,
-  };
-}
-
+    // Return a map with non-null checks to avoid issues in FutureBuilder
+    return {
+      'token': token ?? '', // Default empty string if null
+      'role': role ?? '',   // Default empty string if null
+    };
+  }
 }

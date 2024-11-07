@@ -90,14 +90,22 @@ router.post('/api/auth/logout', auth, (req, res) => {
 router.post('/api/partners/addListing', async (req, res) => {
   const { name, location, description, type, owner } = req.body;
 
+  // Ensure location has both latitude and longitude
+  if (!location || !location.latitude || !location.longitude) {
+    return res.status(400).json({ message: 'Invalid location data' });
+  }
+
   try {
     // Create a new listing instance
     const newListing = new Listing({
       name,
-      location,
+      location: {
+        latitude: location.latitude,
+        longitude: location.longitude
+      },
       description,
       type,
-      owner,
+      owner
     });
 
     // Save the listing to the database
@@ -110,6 +118,7 @@ router.post('/api/partners/addListing', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+
 
 // GET /api/partners/myListings - Get all listings for a specific partner
 router.get('/api/partners/myListings', async (req, res) => {
