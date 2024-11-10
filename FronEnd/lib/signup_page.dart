@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'home_page_user.dart'; // Import your User home page
 import 'home_page_partner.dart'; // Import your Partner home page
+import 'login_page.dart';
 
 class SignupPage extends StatefulWidget {
   @override
@@ -43,12 +44,12 @@ class _SignupPageState extends State<SignupPage> {
     if (role == 'user') {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => HomePageUser()), // User home page
+        MaterialPageRoute(builder: (context) => LoginPage()), // User home page
       );
     } else if (role == 'partner') {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => HomePagePartner()), // Partner home page
+        MaterialPageRoute(builder: (context) => LoginPage()), // Partner home page
       );
     }
   } else {

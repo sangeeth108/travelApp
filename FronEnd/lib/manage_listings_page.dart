@@ -115,10 +115,10 @@ class _ManageListingsPageState extends State<ManageListingsPage> {
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            IconButton(
-                              icon: Icon(Icons.edit, color: Colors.blue),
-                              onPressed: () => _navigateToEditListing(listing['_id']),
-                            ),
+                            //IconButton(
+                              //icon: Icon(Icons.edit, color: Colors.blue),
+                              //onPressed: () => _navigateToEditListing(listing['_id']),
+                           // ),
                             IconButton(
                               icon: Icon(Icons.delete, color: Colors.red),
                               onPressed: () => _deleteListing(listing['_id']),

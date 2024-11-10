@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const auth = require('../middleware/auth');
 const Listing = require('../models/Listings');
+const Trip = require('../models/Trip');
 
 const router = express.Router();
 
@@ -182,6 +183,99 @@ router.put('/api/partners/editListing/:id', async (req, res) => {
 });
 
 
+//create trip
+// POST /api/trips/create
+router.post('/api/trips/create', async (req, res) => {
+  const { trip_name, start_location, destination, start_date, end_date, created_by, participants } = req.body;
+
+  // Ensure all required fields are provided
+  if (!trip_name || !start_location || !start_location.latitude || !start_location.longitude ||
+      !destination || !destination.latitude || !destination.longitude ||
+      !start_date || !end_date || !created_by) {
+    return res.status(400).json({ message: 'Please fill in all required fields' });
+  }
+
+  // Ensure participants are provided as an array
+  if (!Array.isArray(participants) || participants.length === 0) {
+    return res.status(400).json({ message: 'Please provide a list of participants.' });
+  }
+
+  try {
+    // Step 1: Validate if all participants exist in the User collection
+    const existingUsers = await User.find({ email: { $in: participants } });
+    const existingEmails = existingUsers.map(user => user.email);
+    
+    // Step 2: If some participants are not found, return an error
+    const invalidParticipants = participants.filter(email => !existingEmails.includes(email));
+    if (invalidParticipants.length > 0) {
+      return res.status(400).json({
+        message: `User(s) with email(s) ${invalidParticipants.join(', ')} not found.`,
+      });
+    }
+
+    // Step 3: Proceed with creating the trip
+    const newTrip = new Trip({
+      tripName: trip_name,
+      startLocation: {
+        latitude: start_location.latitude,
+        longitude: start_location.longitude,
+      },
+      destination: {
+        latitude: destination.latitude,
+        longitude: destination.longitude,
+      },
+      startDate: new Date(start_date),
+      endDate: new Date(end_date),
+      createdBy: created_by,
+      participants: participants, // Save participants emails
+    });
+
+    await newTrip.save();
+
+    res.status(200).json({ message: 'Trip created successfully!', trip: newTrip });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
+// GET /api/trips/:tripId - Fetch a specific trip by ID
+
+
+// GET /api/trips/user/:userId - Fetch all trips for a specific user
+router.get('/api/trips/user', async (req, res) => {
+  const { email } = req.query;
+  try {
+    // Fetch trips where the user is a participant or the creator
+    const trips = await Trip.find({
+      $or: [
+        { participants: email },  // User is a participant
+        { createdBy: email }       // User is the creator
+      ]
+    });
+
+    res.status(200).json(trips);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
+router.get('/api/trips/:tripId', async (req, res) => {
+  const { tripId } = req.params;
+  try {
+    const trip = await Trip.findById(tripId);
+    if (!trip) {
+      return res.status(404).json({ message: 'Trip not found' });
+    }
+    res.status(200).json(trip);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
 
 module.exports = router;

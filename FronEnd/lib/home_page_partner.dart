@@ -48,36 +48,36 @@ class _HomePagePartnerState extends State<HomePagePartner> {
         ],
       ),
       body: Center(
-  child: Column(
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: [
-      Text(
-        'Welcome to your Partner Dashboard, $username!',
-        style: TextStyle(fontSize: 24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              '$username, Partner Dashboard!',
+              style: TextStyle(fontSize: 24),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AddListingPage()),
+                );
+              },
+              child: Text('Add New Listing'),
+            ),
+            SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ManageListingsPage()),
+                );
+              },
+              child: Text('Manage Listings'),
+            ),
+          ],
+        ),
       ),
-      SizedBox(height: 20),
-      ElevatedButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => AddListingPage()),
-          );
-        },
-        child: Text('Add New Listing'),
-      ),
-      SizedBox(height: 10),
-      ElevatedButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => ManageListingsPage()),
-          );
-        },
-        child: Text('Manage Listings'),
-      ),
-    ],
-  ),
-),
     );
   }
 }

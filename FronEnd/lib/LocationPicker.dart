@@ -40,6 +40,15 @@ class _LocationPickerState extends State<LocationPicker> {
     print("Zoom level: ${position.zoom}");
   }
 
+  void _onMapCreated(GoogleMapController controller) {
+    _mapController = controller;
+
+    // Move the camera to the desired initial location
+    _mapController.moveCamera(
+      CameraUpdate.newLatLng(widget.initialLocation),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,24 +75,21 @@ class _LocationPickerState extends State<LocationPicker> {
                   }
                 : {},
             onTap: _onMapTapped,
-            onMapCreated: (GoogleMapController controller) {
-              _mapController = controller;
-            },
+            onMapCreated: _onMapCreated,
             onCameraMove: _onCameraMove,
           ),
           Positioned(
             bottom: 32,
-            left: 16,
-            right: 16,
+            left: 55,
+            right: 55,
             child: Container(
-              height: 40,  // Set a smaller height
-              width: double.infinity,  // Make it stretch horizontally if needed
+              height: 40,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 50), // Smaller padding
-                  textStyle: TextStyle(fontSize: 14), // Smaller text size
+                  padding: EdgeInsets.symmetric(vertical: 10, horizontal: 50),
+                  textStyle: TextStyle(fontSize: 14),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),  // Optional rounded corners
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
                 onPressed: _confirmLocation,
@@ -95,4 +101,13 @@ class _LocationPickerState extends State<LocationPicker> {
       ),
     );
   }
+}
+
+// Example of how to use LocationPicker with the new default location
+void main() {
+  runApp(MaterialApp(
+    home: LocationPicker(
+      initialLocation: LatLng(6.922329701532135, 79.85313188284636),  // Default opening location
+    ),
+  ));
 }
