@@ -2,8 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'home_page_user.dart'; // Import your User home page
-import 'home_page_partner.dart'; // Import your Partner home page
 import 'login_page.dart';
 
 class SignupPage extends StatefulWidget {

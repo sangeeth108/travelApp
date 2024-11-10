@@ -25,29 +25,30 @@ class _LoginPageState extends State<LoginPage> {
       }),
     );
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('token', data['token']);
-      await prefs.setString('username', data['user']['name']);
-      await prefs.setString('email', data['user']['email']);
-      String role = data['user']['role']; // Get the user role from the response
+    // Inside _login method
+if (response.statusCode == 200) {
+  final data = json.decode(response.body);
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.setString('token', data['token']);
+  await prefs.setString('role', data['user']['role']);
+  await prefs.setString('username', data['user']['name']);
+  await prefs.setString('email', data['user']['email']);
+  String role = data['user']['role']; // Get the user role from the response
 
-      // Navigate based on user role
-      if (role == 'user') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (context) => HomePageUser()), // User home page
-        );
-      } else if (role == 'partner') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (context) => HomePagePartner()), // Partner home page
-        );
-      }
-    } else {
+  // Navigate based on user role
+  if (role == 'user') {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => HomePageUser()), // User home page
+    );
+  } else if (role == 'partner') {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => HomePagePartner()), // Partner home page
+    );
+  }
+}
+ else {
       // Check for specific error messages from the response if available
       final errorData = json.decode(response.body);
       _showErrorDialog(

@@ -57,14 +57,15 @@ class _HomePageUserState extends State<HomePageUser> {
 
   // Logout the user by clearing the shared preferences and redirecting to the login page
   Future<void> _logout() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.remove('token');
-    await prefs.remove('username');
-    await prefs.remove('email');
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => LoginPage()),
-    );
-  }
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.remove('token');
+  await prefs.remove('role');
+  await prefs.remove('username');
+  await prefs.remove('email');
+  Navigator.of(context).pushReplacement(
+    MaterialPageRoute(builder: (context) => LoginPage()),
+  );
+}
 
   // Navigate to trip details page
   void _goToTripDetails(String tripId) {
