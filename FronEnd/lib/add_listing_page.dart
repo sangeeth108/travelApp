@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
-import 'LocationPicker.dart';  // Import the LocationPicker widget
+import 'LocationPicker.dart'; // Import the LocationPicker widget
 
 class AddListingPage extends StatefulWidget {
   @override
@@ -18,7 +18,9 @@ class _AddListingPageState extends State<AddListingPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  String _type = 'restaurant'; // Dropdown selection
+  final TextEditingController _priceController = TextEditingController();
+  final TextEditingController _roomsController = TextEditingController();
+  final TextEditingController _amenitiesController = TextEditingController();
 
   @override
   void initState() {
@@ -74,6 +76,8 @@ class _AddListingPageState extends State<AddListingPage> {
     // Validate required fields
     if (_nameController.text.isEmpty ||
         _descriptionController.text.isEmpty ||
+        _priceController.text.isEmpty ||
+        _roomsController.text.isEmpty ||
         _selectedLocation == null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('Please fill all fields and select a location.'),
@@ -83,16 +87,18 @@ class _AddListingPageState extends State<AddListingPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://26.149.114.62:5000/api/partners/addListing'),
+        Uri.parse('http://26.149.114.62:5000/api/addListing'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'name': _nameController.text,
+          'description': _descriptionController.text,
+          'price': double.parse(_priceController.text),
+          'rooms': int.parse(_roomsController.text),
+          'amenities': _amenitiesController.text.split(','),
           'location': {
             'latitude': _selectedLocation!.latitude,
             'longitude': _selectedLocation!.longitude,
           },
-          'description': _descriptionController.text,
-          'type': _type,
           'owner': email,
         }),
       );
@@ -101,16 +107,10 @@ class _AddListingPageState extends State<AddListingPage> {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('Listing added successfully!'),
         ));
-        _nameController.clear();
-        _locationController.clear();
-        _descriptionController.clear();
-        setState(() {
-          _type = 'restaurant';
-          _selectedLocation = null;
-        });
+        _clearFields();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Failed to add listing.'),
+          content: Text('Failed to add listing. Please try again.'),
         ));
       }
     } catch (e) {
@@ -120,51 +120,67 @@ class _AddListingPageState extends State<AddListingPage> {
     }
   }
 
+  void _clearFields() {
+    _nameController.clear();
+    _locationController.clear();
+    _descriptionController.clear();
+    _priceController.clear();
+    _roomsController.clear();
+    _amenitiesController.clear();
+    setState(() {
+      _selectedLocation = null;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('Add New Listing')),
       body: Padding(
         padding: EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(labelText: 'Name'),
-            ),
-            TextField(
-              controller: _descriptionController,
-              decoration: InputDecoration(labelText: 'Description'),
-            ),
-            TextField(
-              controller: _locationController,
-              readOnly: true,
-              decoration: InputDecoration(labelText: 'Location (Lat, Lng)'),
-            ),
-            ElevatedButton(
-              onPressed: _selectLocation,
-              child: Text('Select Location on Map'),
-            ),
-            DropdownButton<String>(
-              value: _type,
-              onChanged: (String? newValue) {
-                setState(() {
-                  _type = newValue!;
-                });
-              },
-              items: <String>['restaurant', 'resort']
-                  .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-            ),
-            ElevatedButton(
-              onPressed: _submitListing,
-              child: Text('Submit'),
-            ),
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              TextField(
+                controller: _nameController,
+                decoration: InputDecoration(labelText: 'Hotel Name'),
+              ),
+              TextField(
+                controller: _descriptionController,
+                decoration: InputDecoration(labelText: 'Description'),
+                maxLines: 3,
+              ),
+              TextField(
+                controller: _priceController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(labelText: 'Price per Night'),
+              ),
+              TextField(
+                controller: _roomsController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(labelText: 'Number of Rooms'),
+              ),
+              TextField(
+                controller: _amenitiesController,
+                decoration: InputDecoration(
+                  labelText: 'Amenities (comma-separated)',
+                ),
+              ),
+              TextField(
+                controller: _locationController,
+                readOnly: true,
+                decoration: InputDecoration(labelText: 'Location (Lat, Lng)'),
+              ),
+              ElevatedButton(
+                onPressed: _selectLocation,
+                child: Text('Select Location on Map'),
+              ),
+              ElevatedButton(
+                onPressed: _submitListing,
+                child: Text('Submit Listing'),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -5,7 +5,9 @@ const User = require('../models/User');
 const auth = require('../middleware/auth');
 const Listing = require('../models/Listings');
 const Trip = require('../models/Trip');
+const WEATHER_API_KEY = '392cb59f772e4361d30eeb6807906bcd';
 
+const axios = require('axios');
 const router = express.Router();
 
 // @route   POST /api/auth/signup
@@ -313,6 +315,71 @@ router.post('/api/trips/:tripId/add-participant', async (req, res) => {
     res.status(500).json({ message: 'Server error while adding participant.' });
   }
 });
+
+
+
+router.post('/weather', async (req, res) => {
+  const { latitude, longitude, startDate, endDate } = req.body;
+
+  try {
+    // OpenWeatherMap One Call API
+    const response = await axios.get('https://api.openweathermap.org/data/2.5/weather', {
+      params: {
+        lat: latitude,
+        lon: longitude,
+        appid: WEATHER_API_KEY,
+        exclude: 'minutely,hourly,alerts',
+        units: 'metric',
+      },
+    });
+
+    const weatherData = response.data;
+    const dailyWeather = weatherData.daily.filter((day) => {
+      const timestamp = day.dt * 1000;
+      const date = new Date(timestamp).toISOString().split('T')[0];
+      return date >= startDate && date <= endDate;
+    });
+
+    res.json({ dailyWeather });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to fetch weather data' });
+  }
+});
+
+router.post('/api/addListing', async (req, res) => {
+  try {
+    const { name, location, description, price, rooms, amenities, owner } = req.body;
+
+    // Validate required fields
+    if (!name || !location || !location.latitude || !location.longitude || !description || !price || !rooms || !owner) {
+      return res.status(400).json({ error: 'Please provide all required fields.' });
+    }
+
+    // Create a new listing
+    const newListing = new Listing({
+      name,
+      location: {
+        latitude: location.latitude,
+        longitude: location.longitude,
+      },
+      description,
+      price,
+      rooms,
+      amenities,
+      owner,
+    });
+
+    // Save the listing to the database
+    const savedListing = await newListing.save();
+
+    res.status(200).json({ message: 'Listing added successfully.', listing: savedListing });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'An error occurred while adding the listing.' });
+  }
+});
+
 
 
 

@@ -5,7 +5,7 @@ import 'package:flutter_application_1/listings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'login_page.dart';
-import 'trip_details.dart';
+import './trip_page/trip_details_page.dart';
 
 class HomePageUser extends StatefulWidget {
   @override
