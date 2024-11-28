@@ -19,13 +19,21 @@ const ListingSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  type: {
-    type: String,
-    enum: ['restaurant', 'resort'], // Add other types if necessary
+  price: {
+    type: Number, // Price per night
     required: true,
+  },
+  rooms: {
+    type: Number, // Total number of rooms
+    required: true,
+  },
+  amenities: {
+    type: [String], // List of amenities (e.g., WiFi, Pool)
+    default: [],
   },
   owner: {
     type: String,
+    required: true, // Owner email or user ID
   },
   dateAdded: {
     type: Date,
