@@ -278,4 +278,42 @@ router.get('/api/trips/:tripId', async (req, res) => {
 });
 
 
+// 2. Add Participant to Trip
+router.post('/api/trips/:tripId/add-participant', async (req, res) => {
+  const { participant } = req.body;
+
+  // Check if the participant email is provided
+  if (!participant) {
+    return res.status(400).json({ message: 'Participant email is required.' });
+  }
+
+  try {
+    // Validate if the participant exists in the User collection
+    const user = await User.findOne({ email: participant });
+    if (!user) {
+      return res.status(400).json({ message: 'User with this email does not exist.' });
+    }
+
+    // Find the trip and add the participant if they are not already added
+    const trip = await Trip.findById(req.params.tripId);
+    if (!trip) {
+      return res.status(404).json({ message: 'Trip not found.' });
+    }
+
+    if (trip.participants.includes(participant)) {
+      return res.status(400).json({ message: 'Participant already added to this trip.' });
+    }
+
+    trip.participants.push(participant);
+    await trip.save();
+
+    res.status(200).json({ message: 'Participant added successfully!', trip });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error while adding participant.' });
+  }
+});
+
+
+
 module.exports = router;

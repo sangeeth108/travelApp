@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class TripDetailsPage extends StatefulWidget {
-  final String tripId;  // Pass the trip ID to this page
+  final String tripId;
 
   TripDetailsPage({required this.tripId});
 
@@ -14,6 +14,7 @@ class TripDetailsPage extends StatefulWidget {
 class _TripDetailsPageState extends State<TripDetailsPage> {
   Map<String, dynamic>? tripDetails;
   bool isLoading = true;
+  final TextEditingController _newParticipantController = TextEditingController();
 
   @override
   void initState() {
@@ -35,6 +36,43 @@ class _TripDetailsPageState extends State<TripDetailsPage> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to load trip details.')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred. Please try again later.')),
+      );
+    }
+  }
+
+  Future<void> _addParticipant() async {
+    final newParticipant = _newParticipantController.text.trim();
+    if (newParticipant.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please enter a participant email.')),
+      );
+      return;
+    }
+
+    final url = 'http://26.149.114.62:5000/api/trips/${widget.tripId}/add-participant';
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'participant': newParticipant}),
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          tripDetails!['participants'].add(newParticipant);
+          _newParticipantController.clear();
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Participant added successfully!')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to add participant.')),
         );
       }
     } catch (e) {
@@ -85,6 +123,19 @@ class _TripDetailsPageState extends State<TripDetailsPage> {
                       Text('Participants:'),
                       for (var participant in tripDetails!['participants'])
                         Text(participant),
+                      SizedBox(height: 20),
+                      TextField(
+                        controller: _newParticipantController,
+                        decoration: InputDecoration(
+                          labelText: 'Add More Participant',
+                          hintText: 'Enter participant email',
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      ElevatedButton(
+                        onPressed: _addParticipant,
+                        child: Text('Add Participant'),
+                      ),
                     ],
                   ),
                 ),
