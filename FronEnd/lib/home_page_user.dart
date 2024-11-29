@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/booking.dart';
 import 'package:flutter_application_1/create_trip.dart';
-import 'package:flutter_application_1/listings.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'login_page.dart';
@@ -107,7 +107,7 @@ class _HomePageUserState extends State<HomePageUser> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ListingsPage()),
+                  MaterialPageRoute(builder: (context) => BookingPage(listingId: '6749664947bcf63d12dc2854', price: 25)),
                 );
               },
               child: Text('Bookings'),

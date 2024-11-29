@@ -35,6 +35,10 @@ const ListingSchema = new mongoose.Schema({
     type: String,
     required: true, // Owner email or user ID
   },
+  imageUrl: {
+    type: String, // URL or path to the image file
+    default: '', // Default to empty if no image is provided
+  },
   dateAdded: {
     type: Date,
     default: Date.now,

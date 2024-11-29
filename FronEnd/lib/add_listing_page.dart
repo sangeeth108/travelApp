@@ -1,10 +1,11 @@
-import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
-import 'LocationPicker.dart'; // Import the LocationPicker widget
+import 'LocationPicker.dart';
 
 class AddListingPage extends StatefulWidget {
   @override
@@ -14,6 +15,7 @@ class AddListingPage extends StatefulWidget {
 class _AddListingPageState extends State<AddListingPage> {
   String email = '';
   LatLng? _selectedLocation;
+  File? _selectedImage;
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
@@ -72,36 +74,46 @@ class _AddListingPageState extends State<AddListingPage> {
     }
   }
 
+  Future<void> _pickImage() async {
+    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+    }
+  }
+
   Future<void> _submitListing() async {
-    // Validate required fields
     if (_nameController.text.isEmpty ||
         _descriptionController.text.isEmpty ||
         _priceController.text.isEmpty ||
         _roomsController.text.isEmpty ||
-        _selectedLocation == null) {
+        _selectedLocation == null ||
+        _selectedImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Please fill all fields and select a location.'),
+        content: Text('Please fill all fields and select an image.'),
       ));
       return;
     }
 
     try {
-      final response = await http.post(
+      var request = http.MultipartRequest(
+        'POST',
         Uri.parse('http://26.149.114.62:5000/api/addListing'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'name': _nameController.text,
-          'description': _descriptionController.text,
-          'price': double.parse(_priceController.text),
-          'rooms': int.parse(_roomsController.text),
-          'amenities': _amenitiesController.text.split(','),
-          'location': {
-            'latitude': _selectedLocation!.latitude,
-            'longitude': _selectedLocation!.longitude,
-          },
-          'owner': email,
-        }),
       );
+
+      request.fields['name'] = _nameController.text;
+      request.fields['description'] = _descriptionController.text;
+      request.fields['price'] = _priceController.text;
+      request.fields['rooms'] = _roomsController.text;
+      request.fields['amenities'] = _amenitiesController.text;
+      request.fields['location[latitude]'] = _selectedLocation!.latitude.toString();
+      request.fields['location[longitude]'] = _selectedLocation!.longitude.toString();
+      request.fields['owner'] = email;
+
+      request.files.add(await http.MultipartFile.fromPath('image', _selectedImage!.path));
+
+      var response = await request.send();
 
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -129,6 +141,7 @@ class _AddListingPageState extends State<AddListingPage> {
     _amenitiesController.clear();
     setState(() {
       _selectedLocation = null;
+      _selectedImage = null;
     });
   }
 
@@ -175,6 +188,17 @@ class _AddListingPageState extends State<AddListingPage> {
                 onPressed: _selectLocation,
                 child: Text('Select Location on Map'),
               ),
+              ElevatedButton(
+                onPressed: _pickImage,
+                child: Text('Select Image'),
+              ),
+              if (_selectedImage != null)
+                Image.file(
+                  _selectedImage!,
+                  height: 150,
+                  width: 150,
+                  fit: BoxFit.cover,
+                ),
               ElevatedButton(
                 onPressed: _submitListing,
                 child: Text('Submit Listing'),

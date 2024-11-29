@@ -7,6 +7,10 @@ const Listing = require('../models/Listings');
 const Trip = require('../models/Trip');
 const WEATHER_API_KEY = '392cb59f772e4361d30eeb6807906bcd';
 
+const multer = require('multer');
+const path = require('path');
+
+
 const axios = require('axios');
 const router = express.Router();
 
@@ -347,27 +351,45 @@ router.post('/weather', async (req, res) => {
   }
 });
 
-router.post('/api/addListing', async (req, res) => {
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/images'); // Directory where images will be saved
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  },
+});
+
+
+const upload = multer({ storage });
+
+router.post('/api/addListing', upload.single('image'), async (req, res) => {
   try {
     const { name, location, description, price, rooms, amenities, owner } = req.body;
 
     // Validate required fields
-    if (!name || !location || !location.latitude || !location.longitude || !description || !price || !rooms || !owner) {
+    if (!name || !location || !description || !price || !rooms || !owner) {
       return res.status(400).json({ error: 'Please provide all required fields.' });
     }
+
+    // Check if an image file was uploaded
+    const imageUrl = req.file ? `/uploads/${req.file.filename}` : '';
 
     // Create a new listing
     const newListing = new Listing({
       name,
       location: {
-        latitude: location.latitude,
-        longitude: location.longitude,
+        latitude: parseFloat(location.latitude),
+        longitude: parseFloat(location.longitude),
       },
       description,
-      price,
-      rooms,
-      amenities,
+      price: parseFloat(price),
+      rooms: parseInt(rooms),
+      amenities: amenities ? amenities.split(',') : [],
       owner,
+      imageUrl,
     });
 
     // Save the listing to the database
@@ -379,8 +401,5 @@ router.post('/api/addListing', async (req, res) => {
     res.status(500).json({ error: 'An error occurred while adding the listing.' });
   }
 });
-
-
-
 
 module.exports = router;
